@@ -1,0 +1,216 @@
+package verve;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+
+public class Manual {
+	HashMap<String, String> classifications;
+	String manualList = "1,small-range,3-Minute-Journal,764px-767px,FP\n" + 
+			"2,small-range,AccountKiller,476px-480px,TP\n" + 
+			"3,small-range,AccountKiller,476px-480px,TP\n" + 
+			"4,small-range,AccountKiller,476px-480px,TP\n" + 
+			"5,small-range,AccountKiller,476px-480px,TP\n" + 
+			"6,small-range,AccountKiller,476px-480px,TP\n" + 
+			"7,small-range,AccountKiller,476px-480px,TP\n" + 
+			"8,small-range,AccountKiller,476px-480px,TP\n" + 
+			"9,small-range,AccountKiller,476px-480px,TP\n" + 
+			"10,small-range,AccountKiller,476px-480px,TP\n" + 
+			"11,small-range,AccountKiller,476px-480px,TP\n" + 
+			"12,small-range,AccountKiller,476px-480px,TP\n" + 
+			"13,small-range,AccountKiller,476px-480px,TP\n" + 
+			"14,small-range,AccountKiller,476px-480px,TP\n" + 
+			"15,small-range,AccountKiller,476px-480px,TP\n" + 
+			"16,small-range,AccountKiller,476px-480px,TP\n" + 
+			"17,small-range,AccountKiller,476px-480px,TP\n" + 
+			"18,small-range,AccountKiller,476px-480px,TP\n" + 
+			"19,small-range,AccountKiller,476px-480px,TP\n" + 
+			"20,small-range,AccountKiller,476px-480px,TP\n" + 
+			"21,small-range,AccountKiller,476px-480px,TP\n" + 
+			"22,small-range,AccountKiller,476px-480px,TP\n" + 
+			"23,small-range,AccountKiller,476px-480px,TP\n" + 
+			"24,small-range,AccountKiller,476px-480px,TP\n" + 
+			"25,small-range,AccountKiller,476px-480px,TP\n" + 
+			"26,small-range,AccountKiller,476px-480px,TP\n" + 
+			"27,small-range,AccountKiller,476px-480px,TP\n" + 
+			"28,small-range,AccountKiller,476px-480px,TP\n" + 
+			"29,small-range,AccountKiller,476px-480px,TP\n" + 
+			"30,small-range,AccountKiller,476px-480px,TP\n" + 
+			"31,small-range,AccountKiller,476px-480px,TP\n" + 
+			"32,small-range,AccountKiller,476px-480px,TP\n" + 
+			"33,small-range,AccountKiller,476px-480px,TP\n" + 
+			"34,small-range,AccountKiller,476px-480px,TP\n" + 
+			"35,small-range,AccountKiller,476px-480px,TP\n" + 
+			"36,small-range,AccountKiller,476px-480px,TP\n" + 
+			"37,small-range,AccountKiller,476px-480px,TP\n" + 
+			"38,small-range,AccountKiller,476px-480px,TP\n" + 
+			"39,small-range,AccountKiller,476px-480px,TP\n" + 
+			"40,small-range,AccountKiller,476px-480px,TP\n" + 
+			"41,small-range,AccountKiller,476px-480px,TP\n" + 
+			"42,small-range,AccountKiller,476px-480px,TP\n" + 
+			"43,small-range,AccountKiller,476px-480px,TP\n" + 
+			"44,small-range,AccountKiller,476px-480px,TP\n" + 
+			"45,small-range,AccountKiller,476px-480px,TP\n" + 
+			"46,small-range,AccountKiller,476px-480px,TP\n" + 
+			"47,small-range,AccountKiller,476px-480px,TP\n" + 
+			"48,small-range,AccountKiller,476px-480px,TP\n" + 
+			"49,small-range,AccountKiller,476px-480px,TP\n" + 
+			"50,small-range,AccountKiller,476px-480px,TP\n" + 
+			"51,small-range,AccountKiller,476px-480px,TP\n" + 
+			"52,small-range,AccountKiller,476px-480px,TP\n" + 
+			"53,small-range,AccountKiller,476px-480px,TP\n" + 
+			"54,small-range,AccountKiller,800px-803px,FP\n" + 
+			"55,small-range,AccountKiller,476px-480px,TP\n" + 
+			"56,small-range,AccountKiller,476px-480px,TP\n" + 
+			"57,small-range,AccountKiller,476px-480px,TP\n" + 
+			"58,small-range,AccountKiller,476px-480px,TP\n" + 
+			"59,small-range,AccountKiller,476px-480px,TP\n" + 
+			"60,small-range,AccountKiller,476px-480px,TP\n" + 
+			"61,small-range,AccountKiller,800px-803px,FP\n" + 
+			"62,small-range,AccountKiller,476px-480px,TP\n" + 
+			"63,small-range,AccountKiller,476px-480px,TP\n" + 
+			"64,small-range,AccountKiller,476px-480px,TP\n" + 
+			"65,small-range,AccountKiller,476px-480px,TP\n" + 
+			"66,small-range,AccountKiller,476px-480px,TP\n" + 
+			"67,small-range,AccountKiller,476px-480px,TP\n" + 
+			"68,small-range,AccountKiller,476px-480px,TP\n" + 
+			"69,small-range,AccountKiller,476px-480px,TP\n" + 
+			"70,small-range,AccountKiller,800px-803px,FP\n" + 
+			"71,small-range,AccountKiller,476px-480px,TP\n" + 
+			"72,small-range,AccountKiller,476px-480px,TP\n" + 
+			"73,small-range,AccountKiller,476px-480px,TP\n" + 
+			"74,small-range,AccountKiller,476px-480px,TP\n" + 
+			"75,small-range,AccountKiller,476px-480px,TP\n" + 
+			"76,small-range,AccountKiller,476px-480px,TP\n" + 
+			"77,small-range,AccountKiller,476px-480px,TP\n" + 
+			"78,small-range,AccountKiller,476px-480px,TP\n" + 
+			"79,small-range,AccountKiller,476px-480px,TP\n" + 
+			"80,small-range,AccountKiller,476px-480px,TP\n" + 
+			"81,small-range,AccountKiller,476px-480px,TP\n" + 
+			"82,small-range,AccountKiller,476px-480px,TP\n" + 
+			"83,small-range,AccountKiller,476px-480px,TP\n" + 
+			"84,small-range,AccountKiller,476px-480px,TP\n" + 
+			"85,small-range,AccountKiller,476px-480px,TP\n" + 
+			"86,small-range,AccountKiller,476px-480px,TP\n" + 
+			"87,small-range,AccountKiller,476px-480px,TP\n" + 
+			"88,small-range,AccountKiller,476px-480px,TP\n" + 
+			"89,small-range,AccountKiller,476px-480px,TP\n" + 
+			"90,small-range,AccountKiller,476px-480px,TP\n" + 
+			"91,small-range,AccountKiller,476px-480px,TP\n" + 
+			"92,small-range,AccountKiller,476px-480px,TP\n" + 
+			"93,small-range,AccountKiller,476px-480px,TP\n" + 
+			"94,small-range,AccountKiller,476px-480px,TP\n" + 
+			"95,small-range,AccountKiller,476px-480px,TP\n" + 
+			"96,small-range,AccountKiller,476px-480px,TP\n" + 
+			"97,small-range,AccountKiller,476px-480px,TP\n" + 
+			"98,small-range,AccountKiller,476px-480px,TP\n" + 
+			"99,small-range,AccountKiller,476px-480px,TP\n" + 
+			"100,small-range,AccountKiller,476px-480px,TP\n" + 
+			"101,small-range,AccountKiller,476px-480px,TP\n" + 
+			"102,small-range,AccountKiller,476px-480px,TP\n" + 
+			"103,small-range,AccountKiller,476px-480px,TP\n" + 
+			"104,small-range,AccountKiller,476px-480px,TP\n" + 
+			"105,small-range,AccountKiller,476px-480px,TP\n" + 
+			"106,small-range,AccountKiller,476px-480px,TP\n" + 
+			"107,small-range,AccountKiller,476px-480px,TP\n" + 
+			"108,small-range,AccountKiller,476px-480px,TP\n" + 
+			"109,small-range,AccountKiller,476px-480px,TP\n" + 
+			"110,small-range,AccountKiller,476px-480px,TP\n" + 
+			"111,small-range,AccountKiller,476px-480px,TP\n" + 
+			"112,small-range,AccountKiller,476px-480px,TP\n" + 
+			"113,small-range,AccountKiller,476px-480px,TP\n" + 
+			"114,small-range,AccountKiller,476px-480px,TP\n" + 
+			"115,small-range,AccountKiller,476px-480px,TP\n" + 
+			"116,small-range,AccountKiller,476px-480px,TP\n" + 
+			"117,small-range,AccountKiller,476px-480px,TP\n" + 
+			"118,small-range,AccountKiller,476px-480px,TP\n" + 
+			"119,small-range,AccountKiller,476px-480px,TP\n" + 
+			"120,small-range,AccountKiller,476px-480px,TP\n" + 
+			"121,small-range,AccountKiller,476px-480px,TP\n" + 
+			"122,small-range,AccountKiller,476px-480px,TP\n" + 
+			"123,small-range,AccountKiller,800px-803px,FP\n" + 
+			"124,small-range,AccountKiller,476px-480px,TP\n" + 
+			"125,small-range,AccountKiller,476px-480px,TP\n" + 
+			"126,small-range,AccountKiller,476px-480px,TP\n" + 
+			"127,small-range,AccountKiller,476px-480px,TP\n" + 
+			"128,small-range,AccountKiller,476px-480px,TP\n" + 
+			"129,small-range,AccountKiller,476px-480px,TP\n" + 
+			"130,small-range,AccountKiller,476px-480px,TP\n" + 
+			"131,small-range,AccountKiller,476px-480px,TP\n" + 
+			"132,small-range,AccountKiller,476px-480px,TP\n" + 
+			"133,small-range,AccountKiller,476px-480px,TP\n" + 
+			"134,small-range,AccountKiller,476px-480px,TP\n" + 
+			"135,small-range,AccountKiller,476px-480px,TP\n" + 
+			"136,small-range,AccountKiller,476px-480px,TP\n" + 
+			"137,small-range,AccountKiller,476px-480px,TP\n" + 
+			"138,small-range,AccountKiller,476px-480px,TP\n" + 
+			"139,small-range,AccountKiller,476px-480px,TP\n" + 
+			"140,small-range,AccountKiller,476px-480px,TP\n" + 
+			"141,small-range,AccountKiller,476px-480px,TP\n" + 
+			"142,small-range,AccountKiller,476px-480px,TP\n" + 
+			"143,small-range,AccountKiller,476px-480px,TP\n" + 
+			"144,small-range,AccountKiller,476px-480px,TP\n" + 
+			"145,small-range,AccountKiller,800px-803px,FP\n" + 
+			"146,small-range,AccountKiller,476px-480px,TP\n" + 
+			"147,small-range,AccountKiller,476px-480px,TP\n" + 
+			"148,small-range,AccountKiller,476px-480px,TP\n" + 
+			"149,small-range,AccountKiller,476px-480px,TP\n" + 
+			"150,small-range,AccountKiller,476px-480px,TP\n" + 
+			"151,small-range,AccountKiller,476px-480px,TP\n" + 
+			"152,small-range,AccountKiller,476px-480px,TP\n" + 
+			"153,small-range,AccountKiller,476px-480px,TP\n" + 
+			"156,small-range,AirBnb,1199px-1199px,FP\n" + 
+			"157,small-range,AirBnb,1200px-1200px,FP\n" + 
+			"161,small-range,CloudConvert,980px-980px,TP\n" + 
+			"162,small-range,Consumer-Reports,768px-770px,FP\n" + 
+			"165,small-range,Duolingo,378px-380px,FP\n" + 
+			"168,small-range,Honey,1200px-1200px,FP\n" + 
+			"169,small-range,Honey,1200px-1200px,FP\n" + 
+			"170,small-range,Honey,1200px-1200px,FP\n" + 
+			"171,small-range,HotelWifiTest,992px-992px,FP\n" + 
+			"172,small-range,HotelWifiTest,769px-769px,FP\n" + 
+			"173,small-range,Mailinator,499px-502px,FP\n" + 
+			"174,small-range,Mailinator,499px-502px,FP\n" + 
+			"177,small-range,Pepfeed,598px-600px,FP\n" + 
+			"178,small-range,Pepfeed,732px-736px,FP\n" + 
+			"179,small-range,Pepfeed,748px-750px,FP\n" + 
+			"180,small-range,Pepfeed,480px-480px,FP\n" + 
+			"181,small-range,Pepfeed,1024px-1024px,FP\n" + 
+			"182,small-range,Pepfeed,992px-993px,FP\n" + 
+			"183,small-range,Pepfeed,480px-480px,FP\n" + 
+			"184,small-range,Pepfeed,732px-736px,FP\n" + 
+			"185,small-range,Pepfeed,748px-750px,FP\n" + 
+			"186,small-range,Pepfeed,598px-600px,FP\n" + 
+			"187,small-range,Pepfeed,965px-965px,FP\n" + 
+			"188,small-range,Pepfeed,769px-773px,FP\n" + 
+			"189,small-range,Pepfeed,415px-415px,TP\n" + 
+			"190,small-range,Pepfeed,1200px-1202px,FP\n" + 
+			"191,small-range,Pepfeed,415px-415px,TP\n" + 
+			"192,small-range,Pepfeed,992px-993px,FP\n" + 
+			"194,small-range,Pocket,768px-770px,FP\n" + 
+			"195,small-range,Pocket,768px-768px,FP\n" + 
+			"196,small-range,Pocket,768px-770px,FP\n" + 
+			"197,small-range,RunPee,479px-479px,FP\n" + 
+			"198,small-range,RunPee,480px-483px,FP\n" + 
+			"199,small-range,RunPee,480px-480px,FP\n" + 
+			"200,small-range,RunPee,481px-481px,FP\n" + 
+			"201,small-range,RunPee,768px-772px,FP\n" + 
+			"203,small-range,TopDocumentary,689px-691px,FP\n" + 
+			"204,small-range,TopDocumentary,593px-596px,FP\n" + 
+			"206,small-range,WillMyPhoneWork,990px-991px,TP\n" + 
+			"207,small-range,WillMyPhoneWork,990px-991px,TP\n" + 
+			"208,small-range,ZeroDollarMovies,481px-483px,FP\n" + 
+			"209,small-range,ZeroDollarMovies,481px-481px,FP";
+	public Manual() {
+	    classifications = new HashMap<String, String>();
+		String[] lines = manualList.split("\n");
+		for(String line : lines) {
+			String[] columns = line.split(",");
+			String old = classifications.get(columns[2]+columns[3]);
+			if(old != null || !old.equals(columns[4])) {
+				System.out.println("Error with "+ columns[2]+columns[3] + " Has " + old + " and now Has " + columns[4]);
+				System.out.println("REPLACING OLDER with NEWER");
+			}
+			classifications.put(columns[2]+columns[3],columns[4]);
+		}
+	}
+}
