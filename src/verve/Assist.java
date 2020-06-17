@@ -22,19 +22,46 @@ import java.util.concurrent.TimeUnit;
 
 public class Assist
 {
+
+	static String outputMainFileName = "output"; 
+	static int tolerance = 1;
 	static int viewportPatingWait = 200;
 	static int defaultMilliWaitLoad = 200;
 	static int defaultMilliWaitSettle = 200;
-	final static String date = getDateTime();
+	static int startWindowSize = 320;
+	static int endWindowSize = 1400;
+	static boolean injectedFailure = false;
+	static boolean fixStepSizeBug = true;
+	static int injectedFailureRangeMin = 992;
+	static int injectedFailureRangeMax = 995;
+	final static String date = getDateTime().replace(':','-');
 	static Scanner reader = new Scanner(System.in);  
 	static int smallrangeThreshold = 100;
-	static String useHistogramMethod = "Intersection";
+	static String useHistogramMethod = "Chi-Square";
+	/*New Thresholds using Horizontal-Vertical (Automatic Threshold)*/
+	static double corThreshold =  1;
+	static double chiThreshold =  0.46;
+	static double kldThreshold =  1.55;
+	static double intThreshold =  0.15;
+	static double altThreshold =  0.82;
+	static double bhaThreshold =  0.23;
+	/**/
+	/*New Thresholds Using Horizontal only (Automatic Threshold)
+	static double corThreshold =  1;
+	static double chiThreshold =  0.11;
+	static double kldThreshold =  0.24;
+	static double intThreshold =  0.09;
+	static double altThreshold =  0.14;
+	static double bhaThreshold =  0.2;
+	/**/
+	/*Old Thresholds Using Horizontal only (First Submission - Manually determined Threshold) Do not use
 	static double corThreshold =  1;
 	static double chiThreshold =  1.85;
 	static double kldThreshold =  2;
 	static double intThreshold =  0.22;
 	static double altThreshold =  1.2;
 	static double bhaThreshold =  0.23;
+	/**/
 	static DecimalFormat decimalFormat = new DecimalFormat("#.##");
 	final static float dash1[] = {15.0f};
 	final static float dash2[] = {10.0f};
@@ -61,8 +88,8 @@ public class Assist
 	static long startTime;
 	static long endTime;
 	static long duration;
-	static String navWebDirectory = "/"+  "Thirty-Runs" +"/"+Assist.date+"/"; 
-	static String outDirectory = "." + File.separator + "Thirty-Runs" +File.separator + Assist.date;
+	static String navWebDirectory = "/"+  outputMainFileName +"/"+Assist.date+"/"; 
+	static String outDirectory = "." + File.separator + outputMainFileName +File.separator + Assist.date;
 	static public void waitToLoad() {
 		try { //timeout for elements to settle
 			TimeUnit.MILLISECONDS.sleep(defaultMilliWaitLoad);
@@ -74,6 +101,14 @@ public class Assist
 	static public void waitToSettle() {
 		try { //timeout for elements to settle
 			TimeUnit.MILLISECONDS.sleep(defaultMilliWaitSettle);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	static public void waitCustomMill(int custom) {
+		try { //timeout for elements to settle
+			TimeUnit.MILLISECONDS.sleep(custom);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

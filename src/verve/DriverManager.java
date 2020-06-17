@@ -536,4 +536,9 @@ public void shutdown()
 	}
 	
 }
+public String getVisiblity(WebElement element) {
+	String script = "return window.getComputedStyle(arguments[0]).getPropertyValue(\"visibility\");";
+	String opacity = (String) jsExc.executeScript(script, element);
+	return opacity;	
+}
 }

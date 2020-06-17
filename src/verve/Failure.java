@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
@@ -20,6 +21,8 @@ public class Failure
 {
 	int viewMin;
 	int viewMax;
+	int savedViewMin;
+	int savedViewMax;
 	int captureView;
 	boolean NOI = true;
 	boolean ignored = false;
@@ -34,6 +37,10 @@ public class Failure
 	boolean printFlagT = false; //flag to print recategorization images of top side
 	boolean printFlagB = false; //flag to print recategorization images of bottom side
 	boolean HTMLParentRelationship = false; //is there a HTML parent child relationship between the two xpaths.
+	
+	int detectedMin = -1;
+	int detectedMax = -1;
+	
 	//String euclideanClassification = "Not classified using distance"; //for small-range if using euclidean calculations;
 
 	String type = null;
@@ -67,7 +74,7 @@ public class Failure
 	int FirstImageScrollOffsetX;
 	int FirstImageScrollOffsetY;
 	int IndexOfLastElementInLine; //Indicates the index of the last element in line for wrapped failures.
-	boolean alreadyMatchedViewportRange =false; //used to match two different Redecheck outputst (step1 and original using binarysearch)
+	boolean alreadyMatchedViewportRange =false; //used to match two different Redecheck output (step1 and original using binarysearch)
 	ArrayList<Results> histogramResults = new ArrayList<Results>();
 
 	BufferedImage screenshotP;
@@ -80,7 +87,9 @@ public class Failure
 	ArrayList<Rectangle> orignalRectangles;//Original DOM Rectangles of web elements to use for printing and assessments
 	ArrayList<String> notes; //notes or log if needed
 	ArrayList<String> titles; //titles for notes or logs if needed
-
+	
+	HashMap<Integer, String> DOMCheckResults; // results of checking the DOM for this failures
+	
 	ArrayList<Area> protrudingArea;
 	Area overlappedArea;
 	Area segregatedArea;
@@ -131,6 +140,7 @@ public class Failure
 		notes = new ArrayList<String>();
 		titles = new ArrayList<String>();
 		problemXpathID = new ArrayList<Integer>();
+		DOMCheckResults = new HashMap<Integer, String>();
 	}
 	public void classifyAllHistograms() {
 		int methodNumber = 0;
@@ -139,6 +149,8 @@ public class Failure
 				maximumClassification(methodNumber);
 			}else if(methodName.equals("Intersection")) {
 				baseClassify(methodNumber);
+			}else if (methodName.equals("Kullback-Leibler Divergence")) {
+				minimumAbsoluteValueClassification(methodNumber);
 			}else{
 				minimumClassification(methodNumber);
 			}
@@ -198,7 +210,7 @@ public class Failure
 			double closerHistogram = Double.parseDouble(Assist.decimalFormat.format(Math.max(compared.minOracle.get(method),compared.maxOracle.get(method)))); 
 			double base = Double.parseDouble(Assist.decimalFormat.format(compared.base.get(method)));
 			double value = (base-closerHistogram) / base;
-			if( value > threshold){
+			if( value >= threshold){
 				//System.out.println("Base: " + Double.parseDouble(Assist.decimalFormat.format(compared.base.get(method))) + " Oracle: " + closerHistogram + " Change: " +value);
 				setMethodClassification(method, "TP");
 				return;
@@ -219,7 +231,17 @@ public class Failure
 	private void minimumClassification(int method) { //Bhattacharyya, Chi-Square, Kullback-Leibler-Divergence, Alternative-Chi-Square
 		double threshold = getThreshold(method);
 		for(Results compared : histogramResults) {
-			if(Double.parseDouble(Assist.decimalFormat.format(Math.min(compared.minOracle.get(method),compared.maxOracle.get(method)))) > threshold){
+			if(Double.parseDouble(Assist.decimalFormat.format(Math.min(compared.minOracle.get(method),compared.maxOracle.get(method)))) >= threshold){
+				setMethodClassification(method, "TP");
+				return;
+			}
+		}
+		setMethodClassification(method, "FP");
+	}
+	private void minimumAbsoluteValueClassification(int method) { //Kullback-Leibler-Divergence
+		double threshold = getThreshold(method);
+		for(Results compared : histogramResults) {
+			if(Double.parseDouble(Assist.decimalFormat.format(Math.min(Math.abs(compared.minOracle.get(method)),Math.abs(compared.maxOracle.get(method))))) >= threshold){
 				setMethodClassification(method, "TP");
 				return;
 			}
@@ -425,7 +447,7 @@ public class Failure
 	public void findAreasOfConcern()
 	{
 		if(type.equals("wrapping")) 
-			wrappedArea = wrappedArea(rectangles.get(0), getLineEndRect());
+			wrappedArea = wrappedArea(rectangles);
 
 		if(type.equals("wrapping") || type.equals("small-range")) {
 			maxAOC = maxRectangleArea();
@@ -593,7 +615,6 @@ public class Failure
 		}
 		return results;
 	}
-
 	public ArrayList<Area> protrudingAreas(Rectangle firstR, Rectangle secondR) //returns protruding rectangles only
 	{
 		java.awt.Rectangle child;
@@ -659,6 +680,25 @@ public class Failure
 		}
 		Rectangle aoc = new Rectangle(minX1, minY1, maxY2 - minY1, maxX2 - minX1);
 		return new Area(aoc, viewMaxWidth, viewMaxHeight);
+	}
+	public boolean isFirstAboveSecond(Rectangle first, Rectangle second) {
+		return (first.y+first.height) <= second.y; 
+	}
+	public boolean wrappedBellowAllElements(ArrayList<Rectangle> rectangles) {
+		Rectangle wrapped = rectangles.get(0);
+		for(int i = 1; i < rectangles.size(); i++)
+			if(!isFirstAboveSecond(rectangles.get(i), wrapped))
+				return false;
+		return true;
+	}
+	public Area wrappedArea(ArrayList<Rectangle> rectangles) {
+		if(wrappedBellowAllElements(rectangles)) {
+			wrapped = true;
+			return new Area(rectangles.get(0), viewMaxWidth, viewMaxHeight);
+		}else {
+			return null;
+		}
+			
 	}
 	public Area wrappedArea(Rectangle wrappedRect, Rectangle lineEndRect) 
 	{
@@ -836,7 +876,7 @@ public class Failure
 
 		try {
 			//ImageIO.write(img.getSubimage(maxAOC.area.x, maxAOC.area.y, maxAOC.area.width, maxAOC.area.height), "png", new File(Assist.outDirectory + File.separator  +  filename));
-			ImageIO.write(img.getSubimage(0, maxAOC.area.y, img.getWidth(), maxAOC.area.height), "png", new File(Assist.outDirectory + File.separator  +  filename));
+			ImageIO.write(img.getSubimage(0, Math.max(0,maxAOC.area.y), img.getWidth(), Math.min((img.getHeight()-maxAOC.area.y),maxAOC.area.height)), "png", new File(Assist.outDirectory + File.separator  +  filename));
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -851,7 +891,7 @@ public class Failure
 			imgs.add(aocImg);
 		}
 	}
-	public void createImagesRightAndLeftOfElements() {
+	public void createImagesRightAndLeftOfElementsWithScrolling() {
 		//first element and everything to right of it
 		BufferedImage aocImg = Assist.copyImage(imgs.get(0).getSubimage(rectangles.get(0).x, rectangles.get(0).y, imgs.get(0).getWidth()-rectangles.get(0).x, rectangles.get(0).height));
 		imgs.add(aocImg);
@@ -867,7 +907,115 @@ public class Failure
 			imgs.add(aocImg);
 		}
 	}
+	public void createImagesRightAndLeftOfElements() {
+		BufferedImage pageImage = imgs.get(0);
+		for(Rectangle rectangle : rectangles) {
+			if(rectangle.x < 0) {
+				rectangle.width = rectangle.width + rectangle.x;
+				rectangle.x = 0;
+			}
+			if(rectangle.y < 0) {
+				rectangle.height =rectangle.height + rectangle.y;
+				rectangle.y = 0;
+			}
+			if(rectangle.x+rectangle.width > pageImage.getWidth()) {
+				rectangle.width = pageImage.getWidth() - rectangle.x;
+			}
+			if(rectangle.y+rectangle.height > pageImage.getHeight()) {
+				rectangle.height = pageImage.getHeight() - rectangle.y;
+			}
+			//element and everything to right of it
+			BufferedImage aocImg = Assist.copyImage(pageImage.getSubimage(rectangle.x, rectangle.y, pageImage.getWidth() - rectangle.x, rectangle.height));
+			imgs.add(aocImg);
+			//element and everything to the left of it
+			aocImg = Assist.copyImage(pageImage.getSubimage(0, rectangle.y, rectangle.width + rectangle.x, rectangle.height));
+			imgs.add(aocImg);
+		}
+	}
+	public void createImagesRightLeftTopBottomOfElements() {
+		BufferedImage pageImage = imgs.get(0);
+		for(Rectangle rectangle : rectangles) {
+			if(rectangle.x < 0) {
+				rectangle.width = rectangle.width + rectangle.x;
+				rectangle.x = 0;
+			}
+			if(rectangle.y < 0) {
+				rectangle.height =rectangle.height + rectangle.y;
+				rectangle.y = 0;
+			}
+			if(rectangle.x+rectangle.width > pageImage.getWidth()) {
+				rectangle.width = pageImage.getWidth() - rectangle.x;
+			}
+			if(rectangle.y+rectangle.height > pageImage.getHeight()) {
+				rectangle.height = pageImage.getHeight() - rectangle.y;
+			}
 
+			//element and everything to right of it
+			BufferedImage aocImg = Assist.copyImage(pageImage.getSubimage(rectangle.x, rectangle.y, pageImage.getWidth() - rectangle.x, rectangle.height));
+			imgs.add(aocImg);
+			//element and everything to the left of it
+			aocImg = Assist.copyImage(pageImage.getSubimage(0, rectangle.y, rectangle.width + rectangle.x, rectangle.height));
+			imgs.add(aocImg);
+			//element and everything to the top of it
+			aocImg = Assist.copyImage(pageImage.getSubimage(rectangle.x, 0, rectangle.width, rectangle.y+rectangle.height));
+			imgs.add(aocImg);
+			//element and everything to the bottom of it
+			aocImg = Assist.copyImage(pageImage.getSubimage(rectangle.x, rectangle.y, rectangle.width, pageImage.getHeight() - rectangle.y));
+			imgs.add(aocImg);
+		}
+		
+	}
+	public void createImagesFullpage() {
+		BufferedImage pageImage = imgs.get(0);
+			//Fullpage
+			BufferedImage aocImg = Assist.copyImage(pageImage.getSubimage(0, 0, pageImage.getWidth(), pageImage.getHeight()));
+			imgs.add(aocImg);
+		
+	}
+	public void createImagesLimitedRightLeftTopBottomOfElements() {
+		BufferedImage pageImage = imgs.get(0);
+		for(Rectangle rectangle : rectangles) {
+			//element and equal size to right of it
+			int width = rectangle.width * 2;
+			if(rectangle.x + width > pageImage.getWidth())
+				width = pageImage.getWidth()-rectangle.x;
+			BufferedImage aocImg = Assist.copyImage(pageImage.getSubimage(rectangle.x, rectangle.y, width, rectangle.height));
+			imgs.add(aocImg);
+			//element and equal size to the left of it
+			int x = rectangle.x - rectangle.width;
+			if(x < 0) {
+				x = 0;
+				width = rectangle.x +rectangle.width;
+			}
+			else
+				width = rectangle.width * 2;
+			aocImg = Assist.copyImage(pageImage.getSubimage(x, rectangle.y, width, rectangle.height));
+			imgs.add(aocImg);
+			//element and equal size to the bottom of it
+			int height = rectangle.height * 2;
+			if(rectangle.y + height  > pageImage.getHeight())
+				height = pageImage.getHeight()-rectangle.y;
+			aocImg = Assist.copyImage(pageImage.getSubimage(rectangle.x, rectangle.y, rectangle.width, height));
+			imgs.add(aocImg);
+			//element and equal size to the top of it
+			int y = rectangle.y - rectangle.height;
+			if(y < 0) {
+				y = 0;
+				height = rectangle.y +rectangle.height;
+			}
+			else
+				height = rectangle.height * 2;
+			aocImg = Assist.copyImage(pageImage.getSubimage(rectangle.x, y, rectangle.width, height));
+			imgs.add(aocImg);
+		}
+		
+	}
+	public void createImagesMaxAOC() {
+		BufferedImage pageImage = imgs.get(0);
+		Rectangle rectangle = maxAOC.area;
+		BufferedImage aocImg = Assist.copyImage(pageImage.getSubimage(rectangle.x, rectangle.y, rectangle.getWidth(), rectangle.height));
+		imgs.add(aocImg);
+	}
 	public void highlightSingleElement(int offsetX, int offsetY, BufferedImage img, Graphics2D g, Rectangle rectangle, Color color) {
 		Rectangle r1 = cutRectangleToVisibleArea(offsetX, offsetY, rectangle, img);
 		g.setColor(Color.BLACK);

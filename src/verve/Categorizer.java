@@ -42,15 +42,19 @@ public class Categorizer
 	DriverManager dm;
 	String reportsPath;
 	boolean featureHiddenDetection;
-//	int[] pauseList = new int [] {167,168,169,170,180,188,190,192,193,194,195,196,197,198,199,200,221,223,229,282,283,298,303,308,318,319,439};
-//	int[] pauseList = new int [] {439};
+
 
 	public Categorizer(String reportsPath, boolean featureHiddenDetection)
 	{
 		dm = new DriverManager("firefox");
 		this.reportsPath = reportsPath;
 		this.featureHiddenDetection = featureHiddenDetection;
-
+	}
+	public void domFilter() {
+		for(Webpage wp: webpages)
+		{
+			wp.domFilter(dm);
+		}
 	}
 	public void lookForNOI2()
 	{
@@ -66,42 +70,12 @@ public class Categorizer
 						dm.navigate("file://" + wp.wPagePath);
 					}
 					lf.startTime();
-
-					String imagePathPrefix = Assist.outDirectory + File.separator  + "Compare_ID_" + lf.ID + "_" + lf.type + "_" + wp.siteName + "_"+ lf.viewMin + "_" + lf.viewMax + "_capture_"; // + lf.captureView +"_1.png";
-
-					//screenshot two oracle locations and failure location
-					getImageFor(wp, lf.maxOracle);
-					getImageFor(wp, lf);
-					if(lf.type.equals("small-range"))
-						getImageFor(wp, lf.minOracle);
-
-
-					lf.findAreasOfConcern();
-					lf.createImagesRightAndLeftOfElements();
-					lf.maxOracle.findAreasOfConcern();
-					lf.maxOracle.createImagesRightAndLeftOfElements();
-
-					lf.minOracle.findAreasOfConcern();
-					lf.minOracle.createImagesRightAndLeftOfElements();
-
-
-					lf.maxOracle.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_" + lf.maxOracle.captureView  +".png");
-					lf.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_"+ lf.captureView  +".png");
-					if(lf.type.equals("small-range"))
-						lf.minOracle.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_"+ lf.minOracle.captureView  +".png");
-
-					lf.writeImages(wp.siteName);
-
-					//opencv
-					prepareImagesAndHistograms(lf, imagePathPrefix);
-					prepareImagesAndHistograms(lf.maxOracle, imagePathPrefix);
-					prepareImagesAndHistograms(lf.minOracle, imagePathPrefix);
-
-					for(int i = 1; i < lf.imgs.size(); i++) {
-						histogramCompareOpenCV(lf, lf.histogramMats.get(i), lf.minOracle.histogramMats.get(i), lf.maxOracle.histogramMats.get(i));
-					}
-
-					lf.classifyAllHistograms();
+					//smallrangeHorizontalReference(wp, lf);
+					smallrangeHorizontalVerticalReference(wp, lf);
+					//smallrangeMaxAOC(wp,lf);
+					//smallrangeLimitedHorizontalVerticalReference(wp, lf);
+					//smallrangeFullpage(wp, lf);
+					exampleScreenshots(wp, lf); //For paper
 				}
 				else if(lf.type.equals("wrapping")) {
 					if(!dm.getURL().contains(wp.wPagePath.replace("\\", "/"))) //check if web site is already loaded
@@ -514,6 +488,188 @@ public class Categorizer
 		}
 		SaveToFileSmallRangeResult();
 
+	}
+	public void smallrangeHorizontalReference(Webpage wp, Failure lf) {
+		String imagePathPrefix = Assist.outDirectory + File.separator  + "Compare_ID_" + lf.ID + "_" + lf.type + "_" + wp.siteName + "_"+ lf.viewMin + "_" + lf.viewMax + "_capture_"; // + lf.captureView +"_1.png";
+
+		//screenshot two oracle locations and failure location
+		getImageFor(wp, lf.maxOracle);
+		getImageFor(wp, lf);
+		if(lf.type.equals("small-range"))
+			getImageFor(wp, lf.minOracle);
+
+
+		lf.findAreasOfConcern();
+		lf.createImagesRightAndLeftOfElements();
+		lf.maxOracle.findAreasOfConcern();
+		lf.maxOracle.createImagesRightAndLeftOfElements();
+
+		lf.minOracle.findAreasOfConcern();
+		lf.minOracle.createImagesRightAndLeftOfElements();
+
+
+		lf.maxOracle.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_" + lf.maxOracle.captureView  +".png");
+		lf.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_"+ lf.captureView  +".png");
+		if(lf.type.equals("small-range"))
+			lf.minOracle.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_"+ lf.minOracle.captureView  +".png");
+
+		lf.writeImages(wp.siteName);
+
+		//opencv
+		prepareImagesAndHistograms(lf, imagePathPrefix);
+		prepareImagesAndHistograms(lf.maxOracle, imagePathPrefix);
+		prepareImagesAndHistograms(lf.minOracle, imagePathPrefix);
+
+		for(int i = 1; i < lf.imgs.size(); i++) {
+			histogramCompareOpenCV(lf, lf.histogramMats.get(i), lf.minOracle.histogramMats.get(i), lf.maxOracle.histogramMats.get(i));
+		}
+
+		lf.classifyAllHistograms();
+	}
+	
+	public void smallrangeHorizontalVerticalReference(Webpage wp, Failure lf) {
+		String imagePathPrefix = Assist.outDirectory + File.separator  + "Compare_ID_" + lf.ID + "_" + lf.type + "_" + wp.siteName + "_"+ lf.viewMin + "_" + lf.viewMax + "_capture_"; // + lf.captureView +"_1.png";
+
+		//screenshot two oracle locations and failure location
+		getImageFor(wp, lf.maxOracle);
+		getImageFor(wp, lf);
+		getImageFor(wp, lf.minOracle);
+
+
+		lf.findAreasOfConcern();
+		lf.createImagesRightLeftTopBottomOfElements();
+		
+		lf.maxOracle.findAreasOfConcern();
+		lf.maxOracle.createImagesRightLeftTopBottomOfElements();
+
+		lf.minOracle.findAreasOfConcern();
+		lf.minOracle.createImagesRightLeftTopBottomOfElements();
+
+
+		lf.maxOracle.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_" + lf.maxOracle.captureView  +".png");
+		lf.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_"+ lf.captureView  +".png");
+		lf.minOracle.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_"+ lf.minOracle.captureView  +".png");
+
+		lf.writeImages(wp.siteName);
+
+		//opencv
+		prepareImagesAndHistograms(lf, imagePathPrefix);
+		prepareImagesAndHistograms(lf.maxOracle, imagePathPrefix);
+		prepareImagesAndHistograms(lf.minOracle, imagePathPrefix);
+
+		for(int i = 1; i < lf.imgs.size(); i++) {
+			histogramCompareOpenCV(lf, lf.histogramMats.get(i), lf.minOracle.histogramMats.get(i), lf.maxOracle.histogramMats.get(i));
+		}
+
+		lf.classifyAllHistograms();
+	}
+	public void smallrangeLimitedHorizontalVerticalReference(Webpage wp, Failure lf) {
+		String imagePathPrefix = Assist.outDirectory + File.separator  + "Compare_ID_" + lf.ID + "_" + lf.type + "_" + wp.siteName + "_"+ lf.viewMin + "_" + lf.viewMax + "_capture_"; // + lf.captureView +"_1.png";
+
+		//screenshot two oracle locations and failure location
+		getImageFor(wp, lf.maxOracle);
+		getImageFor(wp, lf);
+		getImageFor(wp, lf.minOracle);
+
+
+		lf.findAreasOfConcern();
+		lf.createImagesLimitedRightLeftTopBottomOfElements();
+		
+		lf.maxOracle.findAreasOfConcern();
+		lf.maxOracle.createImagesLimitedRightLeftTopBottomOfElements();
+
+		lf.minOracle.findAreasOfConcern();
+		lf.minOracle.createImagesLimitedRightLeftTopBottomOfElements();
+
+
+		lf.maxOracle.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_" + lf.maxOracle.captureView  +".png");
+		lf.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_"+ lf.captureView  +".png");
+		lf.minOracle.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_"+ lf.minOracle.captureView  +".png");
+
+		lf.writeImages(wp.siteName);
+
+		//opencv
+		prepareImagesAndHistograms(lf, imagePathPrefix);
+		prepareImagesAndHistograms(lf.maxOracle, imagePathPrefix);
+		prepareImagesAndHistograms(lf.minOracle, imagePathPrefix);
+
+		for(int i = 1; i < lf.imgs.size(); i++) {
+			histogramCompareOpenCV(lf, lf.histogramMats.get(i), lf.minOracle.histogramMats.get(i), lf.maxOracle.histogramMats.get(i));
+		}
+
+		lf.classifyAllHistograms();
+	}
+	public void smallrangeFullpage(Webpage wp, Failure lf) {
+		String imagePathPrefix = Assist.outDirectory + File.separator  + "Compare_ID_" + lf.ID + "_" + lf.type + "_" + wp.siteName + "_"+ lf.viewMin + "_" + lf.viewMax + "_capture_"; // + lf.captureView +"_1.png";
+
+		//screenshot two oracle locations and failure location
+		getImageFor(wp, lf.maxOracle);
+		getImageFor(wp, lf);
+		getImageFor(wp, lf.minOracle);
+
+
+		lf.findAreasOfConcern();
+		lf.createImagesFullpage();
+		
+		lf.maxOracle.findAreasOfConcern();
+		lf.maxOracle.createImagesFullpage();
+
+		lf.minOracle.findAreasOfConcern();
+		lf.minOracle.createImagesFullpage();
+
+
+		lf.maxOracle.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_" + lf.maxOracle.captureView  +".png");
+		lf.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_"+ lf.captureView  +".png");
+		lf.minOracle.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_"+ lf.minOracle.captureView  +".png");
+
+		lf.writeImages(wp.siteName);
+
+		//opencv
+		prepareImagesAndHistograms(lf, imagePathPrefix);
+		prepareImagesAndHistograms(lf.maxOracle, imagePathPrefix);
+		prepareImagesAndHistograms(lf.minOracle, imagePathPrefix);
+
+		for(int i = 1; i < lf.imgs.size(); i++) {
+			histogramCompareOpenCV(lf, lf.histogramMats.get(i), lf.minOracle.histogramMats.get(i), lf.maxOracle.histogramMats.get(i));
+		}
+
+		lf.classifyAllHistograms();
+	}
+	public void smallrangeMaxAOC(Webpage wp, Failure lf) {
+		String imagePathPrefix = Assist.outDirectory + File.separator  + "Compare_ID_" + lf.ID + "_" + lf.type + "_" + wp.siteName + "_"+ lf.viewMin + "_" + lf.viewMax + "_capture_"; // + lf.captureView +"_1.png";
+
+		//screenshot two oracle locations and failure location
+		getImageFor(wp, lf.maxOracle);
+		getImageFor(wp, lf);
+		getImageFor(wp, lf.minOracle);
+
+
+		lf.findAreasOfConcern();
+		lf.createImagesMaxAOC();
+		
+		lf.maxOracle.findAreasOfConcern();
+		lf.maxOracle.createImagesMaxAOC();
+
+		lf.minOracle.findAreasOfConcern();
+		lf.minOracle.createImagesMaxAOC();
+
+
+		lf.maxOracle.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_" + lf.maxOracle.captureView  +".png");
+		lf.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_"+ lf.captureView  +".png");
+		lf.minOracle.highlightElements("ID_" + lf.ID + "_" + wp.siteName + "_" + lf.type + "_" + lf.viewMin + "_to_" + lf.viewMax + "_capture_"+ lf.minOracle.captureView  +".png");
+
+		lf.writeImages(wp.siteName);
+
+		//opencv
+		prepareImagesAndHistograms(lf, imagePathPrefix);
+		prepareImagesAndHistograms(lf.maxOracle, imagePathPrefix);
+		prepareImagesAndHistograms(lf.minOracle, imagePathPrefix);
+
+		for(int i = 1; i < lf.imgs.size(); i++) {
+			histogramCompareOpenCV(lf, lf.histogramMats.get(i), lf.minOracle.histogramMats.get(i), lf.maxOracle.histogramMats.get(i));
+		}
+
+		lf.classifyAllHistograms();
 	}
 	private void finalReachImproved(Webpage wp, Failure lf) {
 		if((lf.falsePositive || lf.NOI || lf.ignored) && lf.type.equals("viewport")) //if it is true positive then there is no need to check. 
@@ -930,8 +1086,24 @@ public class Categorizer
 	public void SaveToFileSmallRangeResult() {
 		try 
 		{
-			String heading = "UID,Failure Type,Webpage,Range,Base,elementOneAndRightMin,elementOneAndRightMax,Base,elementOneAndLeftMin,elementOneAndLeftMax,Base,elementTwoAndRightMin,elementTwoAndRightMax,Base,elementTwoAndLeftMin,elementTwoAndLeftMax,Classification";
-
+			String heading = "UID,Failure Type,Webpage,Range";
+			int histogramResultsSize = 0;
+			for(Webpage wp: webpages)
+			{
+				for(Failure lf : wp.Failures)
+				{
+					if(lf.type.equals("small-range")) {
+						histogramResultsSize = lf.histogramResults.size();
+						break;
+					}
+				}
+				if (histogramResultsSize != 0)
+					break;
+			}
+			for(int i = 0; i < histogramResultsSize; i++) {
+				heading += ",base-"+ (i + 1) +",min-oracle-"+ (i + 1) +",max-oracle-"+ (i + 1); 
+			}
+			heading += ",Classification";
 			PrintWriter writerCor;
 			writerCor = new PrintWriter(Assist.outDirectory + File.separator + "Correlation" + ".csv");
 			writerCor.println(heading);
@@ -1002,14 +1174,22 @@ public class Categorizer
 	}
 
 
-	public void writeHistogramResultToFile(PrintWriter writer, Webpage wp, Failure lf, int method) {
-		
+	public void writeHistogramResultToFileOld(PrintWriter writer, Webpage wp, Failure lf, int method) {
 		writer.println(lf.ID +"," + lf.type + "," + wp.siteName + "," + lf.viewMin + "px-" + lf.viewMax + "px" 
 				+ "," + 	Assist.decimalFormat.format(lf.histogramResults.get(0).base.get(method)) + "," + 	Assist.decimalFormat.format(lf.histogramResults.get(0).minOracle.get(method))+ "," + 	Assist.decimalFormat.format(lf.histogramResults.get(0).maxOracle.get(method)) 
 				+ "," + 	Assist.decimalFormat.format(lf.histogramResults.get(1).base.get(method)) + "," + 	Assist.decimalFormat.format(lf.histogramResults.get(1).minOracle.get(method))+ "," + 	Assist.decimalFormat.format(lf.histogramResults.get(1).maxOracle.get(method))
 				+ "," + 	Assist.decimalFormat.format(lf.histogramResults.get(2).base.get(method)) + "," + 	Assist.decimalFormat.format(lf.histogramResults.get(2).minOracle.get(method))+ "," + 	Assist.decimalFormat.format(lf.histogramResults.get(2).maxOracle.get(method))
 				+ "," + 	Assist.decimalFormat.format(lf.histogramResults.get(3).base.get(method)) + "," + 	Assist.decimalFormat.format(lf.histogramResults.get(3).minOracle.get(method))+ "," + 	Assist.decimalFormat.format(lf.histogramResults.get(3).maxOracle.get(method))
 				+ "," + lf.getClassificationForMethod(method));
+	}
+	public void writeHistogramResultToFile(PrintWriter writer, Webpage wp, Failure lf, int method) {
+		String outputLine = lf.ID +"," + lf.type + "," + wp.siteName + "," + lf.viewMin + "px-" + lf.viewMax + "px";
+		for(int i = 0; i < lf.histogramResults.size(); i++) {
+			outputLine += "," + 	Assist.decimalFormat.format(lf.histogramResults.get(i).base.get(method)) + "," + 	Assist.decimalFormat.format(lf.histogramResults.get(i).minOracle.get(method))+ "," + 	Assist.decimalFormat.format(lf.histogramResults.get(i).maxOracle.get(method)); 
+		}
+		outputLine += "," + lf.getClassificationForMethod(method);
+		writer.println(outputLine);
+				
 	}
 //	public void oldSmallRangeDetection(Webpage wp, Failure lf) {
 //		getImageFor(wp, lf.minOracle);
@@ -1129,14 +1309,16 @@ public class Categorizer
 //				}
 //				System.out.println("finished waiting");
 //			}
-
+			for(Failure failure : listOfFailures) {
+				failure.viewMaxWidth = width;
+				failure.viewMaxHeight = height;
+				//findWebElementsAddRectangles(failure);
+				findWebElementsAddRectanglesWithoutScrolling(failure);
+			}
 			String fileName = "page_screenshot_" + wp.siteName + "_" +lf.type + "_capture_"+ lf.captureView  +".png";
 			BufferedImage screenshot = dm.saveFullScreenshot(fileName);
 			//wp.screenshots.add(screenshot);
 			for(Failure failure : listOfFailures) {
-				failure.viewMaxWidth = width;
-				failure.viewMaxHeight = height;
-				findWebElementsAddRectangles(failure);
 				failure.imgs.add(screenshot);
 			}
 			wp.captured.set(index, true);
@@ -1454,12 +1636,12 @@ public class Categorizer
 		lf.titles.add("ReCat Criteria:");		
 		lf.notes.add("Cant reach Top by("+lf.reachTopDim.height+")");
 		Rectangle topR = renewTopRectangle(lf, wb);
-		String wbMoveBy = Integer.toString(Integer.parseInt(wbMarginTop.substring(0, wbMarginTop.length()-2)) + lf.reachTopDim.height)+"px";
+		String wbMoveBy = Float.toString(Float.parseFloat(wbMarginTop.substring(0, wbMarginTop.length()-2)) + lf.reachTopDim.height)+"px";
 		String wbMoveByTop;
 
 		if(wbTop.substring(wbTop.length()-2, wbTop.length()).equals("px"))
 		{
-			wbMoveByTop = Integer.toString(Integer.parseInt(wbTop.substring(0, wbTop.length()-2)) + lf.reachTopDim.height)+"px";
+			wbMoveByTop = Float.toString(Float.parseFloat(wbTop.substring(0, wbTop.length()-2)) + lf.reachTopDim.height)+"px";
 		}
 		else
 		{
@@ -1554,12 +1736,12 @@ public class Categorizer
 		lf.titles.add("ReCat Criteria:");		
 		lf.notes.add("Cant reach Left by("+lf.reachLeftDim.width+")");
 		Rectangle LeftR = renewLeftRectangle(lf, wb);
-		String wbMoveBy = Integer.toString(Integer.parseInt(wbMarginLeft.substring(0, wbMarginLeft.length()-2)) + lf.reachLeftDim.width)+"px";
+		String wbMoveBy = Float.toString(Float.parseFloat(wbMarginLeft.substring(0, wbMarginLeft.length()-2)) + lf.reachLeftDim.width)+"px";
 		String wbMoveByLeft;
 
 		if(wbLeft.substring(wbLeft.length()-2, wbLeft.length()).equals("px"))
 		{
-			wbMoveByLeft = Integer.toString(Integer.parseInt(wbLeft.substring(0, wbLeft.length()-2)) + lf.reachLeftDim.width)+"px";
+			wbMoveByLeft = Float.toString(Float.parseFloat(wbLeft.substring(0, wbLeft.length()-2)) + lf.reachLeftDim.width)+"px";
 		}
 		else
 		{
@@ -1652,12 +1834,12 @@ public class Categorizer
 		lf.titles.add("ReCat Criteria:");		
 		lf.notes.add("Cant reach Left by("+lf.reachLeftDim.width+")");
 		Rectangle LeftR = renewLeftRectangle(lf, wb);
-		String wbMoveBy = Integer.toString(Integer.parseInt(wbMarginLeft.substring(0, wbMarginLeft.length()-2)) + lf.reachLeftDim.width)+"px";
+		String wbMoveBy = Float.toString(Float.parseFloat(wbMarginLeft.substring(0, wbMarginLeft.length()-2)) + lf.reachLeftDim.width)+"px";
 		String wbMoveByLeft;
 
 		if(wbLeft.substring(wbLeft.length()-2, wbLeft.length()).equals("px"))
 		{
-			wbMoveByLeft = Integer.toString(Integer.parseInt(wbLeft.substring(0, wbLeft.length()-2)) + lf.reachLeftDim.width)+"px";
+			wbMoveByLeft = Float.toString(Float.parseFloat(wbLeft.substring(0, wbLeft.length()-2)) + lf.reachLeftDim.width)+"px";
 		}
 		else
 		{
@@ -1673,7 +1855,7 @@ public class Categorizer
 				{
 					dm.setMarginLeft(wb, wbMarginLeft); //reset left
 					//System.out.println("Second attempt to move....");
-					wbMoveBy = Integer.toString(Integer.parseInt(wbMarginRight.substring(0, wbMarginRight.length()-2)) - lf.reachLeftDim.width)+"px";
+					wbMoveBy = Float.toString(Float.parseFloat(wbMarginRight.substring(0, wbMarginRight.length()-2)) - lf.reachLeftDim.width)+"px";
 					dm.setMarginRight(wb, wbMoveBy);
 					LeftR = renewLeftRectangle(lf, wb);
 //					if(LeftR.x < 0) //second attempt
@@ -1757,11 +1939,11 @@ public class Categorizer
 		dm.setHeight(wb, wbHeight);
 
 		Rectangle rightR = renewRightRectangle(lf, wb);
-		String wbMoveBy = Integer.toString(Integer.parseInt(wbMarginLeft.substring(0, wbMarginLeft.length()-2)) - lf.reachRightDim.width)+"px";
+		String wbMoveBy = Float.toString(Float.parseFloat(wbMarginLeft.substring(0, wbMarginLeft.length()-2)) - lf.reachRightDim.width)+"px";
 		String wbMoveByLeft;
 		if(wbLeft.substring(wbLeft.length()-2, wbLeft.length()).equals("px"))
 		{
-			wbMoveByLeft = Integer.toString(Integer.parseInt(wbLeft.substring(0, wbLeft.length()-2)) - lf.reachRightDim.width)+"px";
+			wbMoveByLeft = Float.toString(Float.parseFloat(wbLeft.substring(0, wbLeft.length()-2)) - lf.reachRightDim.width)+"px";
 		}
 		else
 		{
@@ -1848,11 +2030,11 @@ public class Categorizer
 		dm.setHeight(wb, wbHeight);
 
 		Rectangle rightR = renewRightRectangle(lf, wb);
-		String wbMoveBy = Integer.toString(Integer.parseInt(wbMarginLeft.substring(0, wbMarginLeft.length()-2)) - lf.reachRightDim.width)+"px";
+		String wbMoveBy = Float.toString(Float.parseFloat(wbMarginLeft.substring(0, wbMarginLeft.length()-2)) - lf.reachRightDim.width)+"px";
 		String wbMoveByLeft;
 		if(wbLeft.substring(wbLeft.length()-2, wbLeft.length()).equals("px"))
 		{
-			wbMoveByLeft = Integer.toString(Integer.parseInt(wbLeft.substring(0, wbLeft.length()-2)) - lf.reachRightDim.width)+"px";
+			wbMoveByLeft = Float.toString(Float.parseFloat(wbLeft.substring(0, wbLeft.length()-2)) - lf.reachRightDim.width)+"px";
 		}
 		else
 		{
@@ -1870,7 +2052,7 @@ public class Categorizer
 //				System.out.println("Second attempt to move....");
 				dm.setMarginLeft(wb, wbMarginLeft); //reset left
 				String wbMoveByThirdAttempt = wbMoveBy;
-				wbMoveBy = Integer.toString(Integer.parseInt(wbMarginRight.substring(0, wbMarginRight.length()-2)) + lf.reachRightDim.width)+"px";
+				wbMoveBy = Float.toString(Float.parseFloat(wbMarginRight.substring(0, wbMarginRight.length()-2)) + lf.reachRightDim.width)+"px";
 				dm.setMarginRight(wb, wbMoveBy);
 				rightR = renewRightRectangle(lf, wb);
 				lf.titles.add("ReCat Move:");
@@ -1909,11 +2091,12 @@ public class Categorizer
 			lf.titles.add("ReCat Move:");
 			lf.notes.add("Element moved by ("+wbMoveByLeft+") new coordinates XYHW(" + rightR.x + "," + rightR.y + "," + rightR.height + "," + rightR.width + ") ");
 		}
+		
 		dm.scroll(rightR);
 		if(rightR.width > lf.viewMaxWidth)
 			rightR.setWidth(lf.viewMaxWidth);
 		TargetArea ta = new TargetArea(rightR);
-		if((dm.cantReachX == 0 || dm.cantReachX <= lf.reachRightDim.width - Integer.parseInt(wbMoveBy.substring(0, wbMoveBy.length()-2))) && wbRectangle.width == wb.getSize().width && wbRectangle.height == wb.getSize().height)
+		if((dm.cantReachX == 0 || dm.cantReachX <= lf.reachRightDim.width - Float.parseFloat(wbMoveBy.substring(0, wbMoveBy.length()-2))) && wbRectangle.width == wb.getSize().width && wbRectangle.height == wb.getSize().height)
 		{
 			//System.out.println("Reach Right Passed.");
 			dm.scroll(ta.area);
@@ -1975,11 +2158,11 @@ public class Categorizer
 		dm.setHeight(wb, wbHeight);
 
 		Rectangle bottomR = renewBottomRectangle(lf, wb);
-		String wbMoveBy = Integer.toString(Integer.parseInt(wbMarginTop.substring(0, wbMarginTop.length()-2)) - lf.reachBottomDim.height)+"px";
+		String wbMoveBy = Float.toString(Float.parseFloat(wbMarginTop.substring(0, wbMarginTop.length()-2)) - lf.reachBottomDim.height)+"px";
 		String wbMoveByTop;
 		if(wbTop.substring(wbTop.length()-2, wbTop.length()).equals("px"))
 		{
-			wbMoveByTop = Integer.toString(Integer.parseInt(wbTop.substring(0, wbTop.length()-2)) - lf.reachBottomDim.height)+"px";
+			wbMoveByTop = Float.toString(Float.parseFloat(wbTop.substring(0, wbTop.length()-2)) - lf.reachBottomDim.height)+"px";
 		}
 		else
 		{
@@ -2230,79 +2413,113 @@ public class Categorizer
 
 			dm.scrollZero();
 			WebElement wb = dm.getWebElem(lf.xpaths.get(i));
-			lf.wbElements.add(wb);
-			Rectangle r = new Rectangle(lf.wbElements.get(i).getLocation(),lf.wbElements.get(i).getSize());
-			Rectangle origR = new Rectangle(lf.wbElements.get(i).getLocation(),lf.wbElements.get(i).getSize());
-			lf.orignalRectangles.add(origR);
-			lf.titles.add("Original Rectangle Information:");
-			lf.notes.add(lf.xpaths.get(i) + "   XYHW(" + r.x + "," + r.y + "," + r.height + "," + r.width + ")");
-
-			dm.scroll(r);
-
-			if(r.x < 0 || r.y < 0 || dm.cantReachX > 0 || dm.cantReachY > 0)
-			{
-				lf.bestEffort = true;
-				lf.problemXpathID.add(i);
-
-				String note = "*Original coordinates XYHW(" + r.x + "," + r.y + "," + r.height + "," + r.width + ") ";
-
-				r.setWidth(r.width - dm.cantReachX);
-				r.setHeight(r.height - dm.cantReachY);
-				if(r.x < 0)
-				{
-					r.setWidth(r.width + r.x);
-					r.setX(0);
-				}
-				if(r.y < 0)
-				{
-
-					r.setHeight(r.height + r.y);
-					r.setY(0);
-				}
-				note = note + "to XYHW(" + r.x + "," + r.y + "," + r.height + "," + r.width + ") ";
-				//System.out.println(note);
-				lf.titles.add("Rectangle (WebElemet) Size Warning:");
-				lf.notes.add(note);
-			}
-			lf.rectangles.add(r);
-			//			lf.rectangles.add(new Rectangle(newX,newY,newH,newW));
-
 			if(wb == null)
 			{
 				lf.setIgnore(true);
 				lf.titles.add("Element Not Found:");
 				lf.notes.add("Timeout or Could not find... xpath " + lf.xpaths.get(i));
 				System.out.println("Timeout or Could not find... xpath " + lf.xpaths.get(i));
-			}
-			if(r.height <= 0 || r.width <= 0)
-			{
-				lf.titles.add("Element Size Error:");
-				lf.notes.add(lf.xpaths.get(i) + " Height: " + r.height + " , Width: " + r.width);
-				System.out.println("Element Size Error: " + lf.xpaths.get(i) + " Height: " + r.height + " , Width: " + r.width);
-				if(lf.type.equals("wrapping")) {
-					if(i == 0) {
-						lf.titles.add("Setting As false positive:");
-						lf.notes.add(lf.xpaths.get(i) + " Height: " + r.height + " , Width: " + r.width);
-						lf.setFalsePositive(true);
+				break;
+			}else {
+				lf.wbElements.add(wb);
+				Rectangle r = new Rectangle(lf.wbElements.get(i).getLocation(),lf.wbElements.get(i).getSize());
+				Rectangle origR = new Rectangle(lf.wbElements.get(i).getLocation(),lf.wbElements.get(i).getSize());
+				lf.orignalRectangles.add(origR);
+				lf.titles.add("Original Rectangle Information:");
+				lf.notes.add(lf.xpaths.get(i) + "   XYHW(" + r.x + "," + r.y + "," + r.height + "," + r.width + ")");
+
+				dm.scroll(r);
+
+				if(r.x < 0 || r.y < 0 || dm.cantReachX > 0 || dm.cantReachY > 0)
+				{
+					lf.bestEffort = true;
+					lf.problemXpathID.add(i);
+
+					String note = "*Original coordinates XYHW(" + r.x + "," + r.y + "," + r.height + "," + r.width + ") ";
+
+					r.setWidth(r.width - dm.cantReachX);
+					r.setHeight(r.height - dm.cantReachY);
+					if(r.x < 0)
+					{
+						r.setWidth(r.width + r.x);
+						r.setX(0);
 					}
-					else if(lf.xpaths.size() >= 3) {
-						System.out.println("Removing row element: " + lf.xpaths.get(i) + " With Height: " + r.height + " , Width: " + r.width);
-						lf.titles.add("Removing Row Element:");
-						lf.notes.add(lf.xpaths.get(i) + " Height: " + r.height + " , Width: " + r.width);
-						lf.xpaths.remove(i);
-						lf.orignalRectangles.remove(i);
-						lf.wbElements.remove(i);
+					if(r.y < 0)
+					{
+
+						r.setHeight(r.height + r.y);
+						r.setY(0);
+					}
+					note = note + "to XYHW(" + r.x + "," + r.y + "," + r.height + "," + r.width + ") ";
+					//System.out.println(note);
+					lf.titles.add("Rectangle (WebElemet) Size Warning:");
+					lf.notes.add(note);
+				}
+				lf.rectangles.add(r);
+				//			lf.rectangles.add(new Rectangle(newX,newY,newH,newW));
+
+
+				if(r.height <= 0 || r.width <= 0)
+				{
+					lf.titles.add("Element Size Error:");
+					lf.notes.add(lf.xpaths.get(i) + " Height: " + r.height + " , Width: " + r.width);
+					System.out.println("Element Size Error: " + lf.xpaths.get(i) + " Height: " + r.height + " , Width: " + r.width);
+					if(lf.type.equals("wrapping")) {
+
+							lf.titles.add("Setting As false positive:");
+							lf.notes.add(lf.xpaths.get(i) + " Height: " + r.height + " , Width: " + r.width);
+							lf.setFalsePositive(true);
+
 					}else {
 						lf.setIgnore(true);
 					}
-				}else {
-					lf.setIgnore(true);
 				}
 			}
 
 		}
 	}
+	private void findWebElementsAddRectanglesWithoutScrolling(Failure lf)
+	{
+		for(int i =0; i < lf.xpaths.size(); i++)
+		{
 
+			WebElement wb = dm.getWebElem(lf.xpaths.get(i));
+			if(wb == null)
+			{
+				lf.setIgnore(true);
+				lf.titles.add("Element Not Found:");
+				lf.notes.add("Timeout or Could not find... xpath " + lf.xpaths.get(i));
+				System.out.println("Timeout or Could not find... xpath " + lf.xpaths.get(i));
+				break;
+			}else {
+				lf.wbElements.add(wb);
+				Rectangle r = new Rectangle(lf.wbElements.get(i).getLocation(),lf.wbElements.get(i).getSize());
+				Rectangle origR = new Rectangle(lf.wbElements.get(i).getLocation(),lf.wbElements.get(i).getSize());
+				lf.orignalRectangles.add(origR);
+				lf.titles.add("Original Rectangle Information:");
+				lf.notes.add(lf.xpaths.get(i) + "   XYHW(" + r.x + "," + r.y + "," + r.height + "," + r.width + ")");
+
+			
+				lf.rectangles.add(r);
+				if(r.height <= 0 || r.width <= 0)
+				{
+					lf.titles.add("Element Size Error:");
+					lf.notes.add(lf.xpaths.get(i) + " Height: " + r.height + " , Width: " + r.width);
+					System.out.println("Element Size Error: " + lf.xpaths.get(i) + " Height: " + r.height + " , Width: " + r.width);
+					if(lf.type.equals("wrapping")) {
+
+							lf.titles.add("Setting As false positive:");
+							lf.notes.add(lf.xpaths.get(i) + " Height: " + r.height + " , Width: " + r.width);
+							lf.setFalsePositive(true);
+
+					}else {
+						lf.setIgnore(true);
+					}
+				}
+			}
+
+		}
+	}
 
 	public void addWebpage(Webpage wp)
 	{

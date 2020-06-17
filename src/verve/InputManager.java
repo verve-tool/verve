@@ -40,15 +40,45 @@ public class InputManager
         	inputFiles.add(file);
         }
     }
+	public boolean inList(String[] list, String text) {
+		for (String item:list) {
+			if(item.toLowerCase().equals(text.toLowerCase())) 
+				return true;
+		}
+		return false;
+	}
+	public String replaceXPathSVG(String xpath) {
+		String[] tags = xpath.trim().split("/");
+		boolean addNotation = false;
+		String newXPath = "";
+		for(String tag : tags) {
+			if(tag.trim().equals("")) {
+				continue;
+			}
+			newXPath += "/";
+			if(tag.contains("svg")) {
+				addNotation = true;
+			}
+			if(addNotation) {
+				newXPath +="*[local-name() = '"+tag+"']";
+			}else {
+				newXPath += tag;
+			}
+			
+		}
+		return newXPath.trim();
+		
+	}
 	public void parseRedecheckOutputFiles()
 	{
+		String[] ignoredSites = {"StumbleUpon"};
 		int count = 1;
 		for(File f: inputFiles)
 		{
 			Webpage wp = new Webpage();
 			int from = f.getParentFile().getParentFile().getPath().lastIndexOf(File.separator);
 			wp.siteName = f.getParentFile().getParentFile().getPath().substring(from+1);
-			if(!wp.siteName.equals("StumbleUpon")) //exclude Ninite since it did not report failures in the published paper. and StumbleUpon since it changed
+			if(!inList(ignoredSites, wp.siteName) ) //exclude StumbleUpon since it changed
 			{
 				from = f.getParentFile().getPath().lastIndexOf(File.separator);
 				wp.uniqueRunName = f.getParentFile().getPath().substring(from+1);
@@ -66,12 +96,11 @@ public class InputManager
 						if(line.contains("SMALL RANGE")) {
 							Failure lf = new Failure();
 							lf.type = "small-range";
-							lf.ID = count;
-							count++;
+
 							line = bReader.readLine();
 							lineFragments = line.split(" ");
-							lf.addXpath(lineFragments[1].trim());
-							lf.addXpath(lineFragments[3].trim());
+							lf.addXpath(replaceXPathSVG(lineFragments[1]));
+							lf.addXpath(replaceXPathSVG(lineFragments[3]));
 							lf.viewMin = Integer.parseInt(lineFragments[lineFragments.length-6].trim());
 							lf.viewMax = Integer.parseInt(lineFragments[lineFragments.length-4].trim());
 							lf.smallrangeThisConstraints = lineFragments[lineFragments.length-1].trim();
@@ -108,14 +137,16 @@ public class InputManager
 							lf.maxOracle.addXpath(lf.xpaths.get(0));
 							lf.maxOracle.addXpath(lf.xpaths.get(1));
 							lf.maxOracle.setCaptureView();
-		
+							if(!Assist.injectedFailure | ( Assist.injectedFailure & lf.viewMin== Assist.injectedFailureRangeMin && lf.viewMax == Assist.injectedFailureRangeMax)) {
 							lf.setCaptureView();
+							lf.ID = count;
+							count++;
 							wp.Failures.add(lf);
 							
 							addToSiteCaptureList(wp, lf);
 							addToSiteCaptureList(wp, lf.minOracle);
 							addToSiteCaptureList(wp, lf.maxOracle);
-							
+							}
 							
 						}
 						else if(line.contains("WRAPPING")) {
@@ -127,12 +158,12 @@ public class InputManager
 							lf.viewMax = Integer.parseInt(lineFragments[lineFragments.length-1].trim().substring(0, lineFragments[lineFragments.length-1].trim().length() - 1));
 							line = bReader.readLine();
 							lineFragments = line.split(" ");
-							lf.addXpath(lineFragments[0].trim().replace("svg", "*[local-name() = 'svg']")); //wrapped element + //workaround patch for Firefox to get the element
+							lf.addXpath(replaceXPathSVG(lineFragments[0])); //wrapped element + //workaround patch for Firefox to get the element
 							line = bReader.readLine();
 							lineFragments = line.split(" ");
 							for(int i=0; i < lineFragments.length; i++) {
 								if(!lineFragments[i].trim().equals(lf.xpaths.get(0)) && lineFragments[i].trim().contains("/")){
-									lf.addXpath(lineFragments[i].trim().replace("svg", "*[local-name() = 'svg']")); //workaround patch for Firefox to get the element
+									lf.addXpath(replaceXPathSVG(lineFragments[i])); //workaround patch for Firefox to get the element
 								}
 							}
 				
@@ -148,13 +179,13 @@ public class InputManager
 							count++;
 							if(lineFragments[1].trim().contains(lineFragments[3].trim()+"/"))
 							{
-								lf.addXpath(lineFragments[3].trim());
-								lf.addXpath(lineFragments[1].trim());
+								lf.addXpath(replaceXPathSVG(lineFragments[3]));
+								lf.addXpath(replaceXPathSVG(lineFragments[1]));
 							}
 							else
 							{
-								lf.addXpath(lineFragments[1].trim());
-								lf.addXpath(lineFragments[3].trim());
+								lf.addXpath(replaceXPathSVG(lineFragments[1]));
+								lf.addXpath(replaceXPathSVG(lineFragments[3]));
 							}
 							if(lineFragments[1].trim().contains(lineFragments[3].trim()+"/") || lineFragments[3].trim().contains(lineFragments[1].trim()+"/"))
 							{
@@ -182,8 +213,8 @@ public class InputManager
 							if(!lineFragments[0].trim().equals(overflowedElement))
 							{
 								parent = lineFragments[0].trim();
-								lf.addXpath(lineFragments[0].trim());
-								lf.addXpath(overflowedElement);
+								lf.addXpath(replaceXPathSVG(lineFragments[0]));
+								lf.addXpath(replaceXPathSVG(overflowedElement));
 								if(overflowedElement.length() <= lineFragments[1].length() && lineFragments[0].trim().contains(overflowedElement+"/"))
 								{
 									System.out.println("Input Warning for ID " +lf.ID);
@@ -194,8 +225,8 @@ public class InputManager
 							else if(!lineFragments[1].trim().equals(overflowedElement) && !wp.siteName.equals("Ninite"))
 							{
 								parent = lineFragments[1].trim();
-								lf.addXpath(lineFragments[1].trim());
-								lf.addXpath(overflowedElement);
+								lf.addXpath(replaceXPathSVG(lineFragments[1]));
+								lf.addXpath(replaceXPathSVG(overflowedElement));
 								if(overflowedElement.length() <= lineFragments[1].length() && lineFragments[1].trim().contains(overflowedElement+"/"))
 								{
 									System.out.println("Input Warning for ID " +lf.ID);
@@ -222,7 +253,7 @@ public class InputManager
 							lf.titles.add("HTML ancestor-descendant relationship:"); 
 							lf.notes.add("Yes");
 							lf.addXpath("/HTML/BODY");
-							lf.addXpath(lineFragments[0].trim());
+							lf.addXpath(replaceXPathSVG(lineFragments[0]));
 							lf.viewMin = Integer.parseInt(lineFragments[lineFragments.length-3].trim());
 							lf.viewMax = Integer.parseInt(lineFragments[lineFragments.length-1].trim());
 							lf.setCaptureView();
@@ -278,11 +309,11 @@ public class InputManager
 //					{
 //						lf.type = "wrapping";
 //						lf.ID = 0;
-//						lf.addXpath(bReader.readLine());
+//						lf.addXpath(replaceXPathSVG(bReader.readLine()));
 //						int pathCount = Integer.parseInt(bReader.readLine().trim());
 //						for(int i=0; i < pathCount; i++)
 //						{
-//							lf.addXpath(bReader.readLine());
+//							lf.addXpath(replaceXPathSVG(bReader.readLine()));
 //						}
 //						lf.viewMin = Integer.parseInt(bReader.readLine().trim());
 //						lf.viewMax = Integer.parseInt(bReader.readLine().trim());
@@ -313,8 +344,8 @@ public class InputManager
 //					}
 //					if(line.toLowerCase().equals("viewport") || line.toLowerCase().equals("collision") || line.toLowerCase().equals("protrusion") || line.toLowerCase().equals("small-range"))
 //					{
-//						lf.addXpath(bReader.readLine());
-//						lf.addXpath(bReader.readLine());
+//						lf.addXpath(replaceXPathSVG(bReader.readLine()));
+//						lf.addXpath(replaceXPathSVG(bReader.readLine()));
 //						lf.viewMin = Integer.parseInt(bReader.readLine().trim());
 //						lf.viewMax = Integer.parseInt(bReader.readLine().trim());
 //						lf.setCaptureView();
