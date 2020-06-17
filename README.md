@@ -53,7 +53,7 @@ You may also want to read more about Selenium WebDriver at https://www.seleniumh
 4. Click "Finish" to complete the import (you may need to select the "pom.xml" file).
 
 ## Input
-Since VERVE was primarily designed as a proof-of-concept prototype for the research paper, no front-end (graphical or command-lined based) has been developed for the tool. Nevertheless, the tool only expects a modification to two string variables in order to work. They represent a file path to the local repository of the web pages under test and another local path where a ReDeCheck output file exists. They can be found in the main Java class file "Workbench.java". The string "webpagesPath" should point to the local repository of the web pages under test. While the string "reportsPath" is expected to point to the directoy where the ReDeCheck output file exists.
+Since VERVE was primarily designed as a proof-of-concept prototype for the research paper, no front-end (graphical or command-lined based) has been developed for the tool. Nevertheless, the tool only expects a modification to two string variables in order to work. They represent a file path to the local repository of the web pages under test and another local path where a ReDeCheck output file exists. They can be found in the main Java class file "Tool.java". The string "webpageDirectory" should point to the local repository of the web pages under test. While the string "reportsPath" is expected to point to the directoy where the ReDeCheck output file exists.
 
 ## Output
 
